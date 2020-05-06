@@ -28,6 +28,47 @@ color ray_color(const ray& r, const hittable& world, int depth) {
 	return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
 }
 
+hittable_list random_scene() {
+	hittable_list world;
+	world.add(make_shared<sphere>(
+		point3(0, -1000, 0), 1000, make_shared<lambertian>(color(0.5, 0.5, 0.5))));
+
+	int i = 1;
+	for (int a = -11; a < 11; ++a) {
+		for (int b = -11; b < 11; ++b) {
+			auto choose_mat = random_double();
+			point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
+			if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
+				if (choose_mat < 0.8) {
+					// diffuse
+					auto albedo = color::random() * color::random();
+					world.add(
+						make_shared<sphere>(center, 0.2, make_shared<lambertian>(albedo)));
+				}
+				else if (choose_mat < 0.95) {
+					// metal
+					auto albedo = color::random(.5, 1);
+					auto fuzz = random_double(0, 0.5);
+					world.add(
+						make_shared<sphere>(center, 0.2, make_shared<metal>(albedo, fuzz)));
+				}
+				else {
+					// glass
+					world.add(make_shared<sphere>(center, 0.2, make_shared<dielectric>(1.5)));
+				}
+			}
+		}
+	}
+
+	world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, make_shared<dielectric>(1.5)));
+
+	world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, make_shared<lambertian>(color(.4, .2, .1))));
+
+	world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, make_shared<metal>(color(.7, .6, .5), 0.0)));
+
+	return world;
+}
+
 int main() {
 	std::ofstream file;
 	file.open("render.ppm");
@@ -45,18 +86,13 @@ int main() {
 	vec3 vertical(0.0, 2.0, 0.0);
 	point3 origin(0.0, 0.0, 0.0);
 
-	hittable_list world;
-	world.add(make_shared<sphere>(point3(0, 0, -1), 0.5, make_shared<lambertian>(color(.1, .2, .4))));
-	world.add(make_shared<sphere>(point3(0, -100.5, -1), 100, make_shared<lambertian>(color(.8, .8, 0.))));
-	world.add(make_shared<sphere>(point3(1, 0, -1), 0.5, make_shared<metal>(color(.8, .6, .2), 0.3)));
-	world.add(make_shared<sphere>(point3(-1, 0, -1), 0.5, make_shared<dielectric>(1.5)));
-	world.add(make_shared<sphere>(point3(-1, 0, -1), -0.45, make_shared<dielectric>(1.5)));
+	auto world = random_scene();
 
-	point3 lookfrom(3, 3, 2);
-	point3 lookat(0, 0, -1);
+	point3 lookfrom(13, 2, 3);
+	point3 lookat(0, 0, 0);
 	vec3 vup(0, 1, 0);
-	auto dist_to_focus = (lookfrom - lookat).length();
-	auto aperture = 2.0;
+	auto dist_to_focus = 10.0;
+	auto aperture = 0.1;
 
 	camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 	for (int j = image_height - 1; j >= 0; --j) {
