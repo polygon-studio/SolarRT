@@ -61,6 +61,13 @@ public:
 			return true;
 		}
 
+		double reflect_prob = schlick(cos_theta, etai_over_etat);
+		if (random_double() < reflect_prob) {
+			vec3 reflected = reflect(unit_direciton, rec.normal);
+			scattered = ray(rec.p, reflected);
+			return true;
+		}
+
 		vec3 refracted = refract(unit_direciton, rec.normal, etai_over_etat);
 		scattered = ray(rec.p, refracted);
 		return true;

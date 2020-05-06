@@ -46,12 +46,19 @@ int main() {
 	point3 origin(0.0, 0.0, 0.0);
 
 	hittable_list world;
-	world.add(make_shared<sphere>(point3(0, 0, -1), 0.5, make_shared<lambertian>(color(0.7, 0.3, 0.3))));
-	world.add(make_shared<sphere>(point3(0, -100.5, -1), 100, make_shared<lambertian>(color(0.8, 0.8, 0.0))));
-
-	world.add(make_shared<sphere>(point3(1, 0, -1), 0.5, make_shared<metal>(color(.8, .6, .2), 1)));
+	world.add(make_shared<sphere>(point3(0, 0, -1), 0.5, make_shared<lambertian>(color(.1, .2, .4))));
+	world.add(make_shared<sphere>(point3(0, -100.5, -1), 100, make_shared<lambertian>(color(.8, .8, 0.))));
+	world.add(make_shared<sphere>(point3(1, 0, -1), 0.5, make_shared<metal>(color(.8, .6, .2), 0.3)));
 	world.add(make_shared<sphere>(point3(-1, 0, -1), 0.5, make_shared<dielectric>(1.5)));
-	camera cam;
+	world.add(make_shared<sphere>(point3(-1, 0, -1), -0.45, make_shared<dielectric>(1.5)));
+
+	point3 lookfrom(3, 3, 2);
+	point3 lookat(0, 0, -1);
+	vec3 vup(0, 1, 0);
+	auto dist_to_focus = (lookfrom - lookat).length();
+	auto aperture = 2.0;
+
+	camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 	for (int j = image_height - 1; j >= 0; --j) {
 		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
 		for (int i = 0; i < image_width; ++i) {
