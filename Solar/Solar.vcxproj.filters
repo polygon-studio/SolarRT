@@ -38,13 +38,13 @@
     <ClInclude Include="hittable_list.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="rtweekend.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

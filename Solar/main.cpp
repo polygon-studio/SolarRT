@@ -1,7 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <future>
 #include "color.h"
-#include "rtweekend.h"
+#include "common.h"
 
 #include "camera.h"
 #include "hittable_list.h"
@@ -69,6 +70,23 @@ hittable_list random_scene() {
 	return world;
 }
 
+void blit(
+	color& pixel_color,
+	int j, int i,
+	int image_height, int image_width,
+	const hittable_list& world,
+	int max_depth,
+	const camera& cam,
+	std::mutex& pixel_lock
+) {
+				auto u = (i + random_double()) / (image_width - 1);
+				auto v = (j + random_double()) / (image_height - 1);
+				ray r = cam.get_ray(u, v);
+
+				std::lock_guard<std::mutex> lock(pixel_lock);
+				pixel_color += ray_color(r, world, max_depth);
+}
+
 int main() {
 	std::ofstream file;
 	file.open("render.ppm");
@@ -98,12 +116,18 @@ int main() {
 	for (int j = image_height - 1; j >= 0; --j) {
 		std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
 		for (int i = 0; i < image_width; ++i) {
+			std::mutex pixel_lock;
 			color pixel_color(0, 0, 0);
 			for (int s = 0; s < samples_per_pixel; ++s) {
-				auto u = (i + random_double()) / (image_width - 1);
-				auto v = (j + random_double()) / (image_height - 1);
-				ray r = cam.get_ray(u, v);
-				pixel_color += ray_color(r, world, max_depth);
+				auto fut = std::async(std::launch::async, blit,
+					std::ref(pixel_color),
+					j, i,
+					image_height, image_width,
+					std::ref(world),
+					max_depth,
+					std::ref(cam),
+					std::ref(pixel_lock)
+				);
 			}
 			write_color(file, pixel_color, samples_per_pixel);
 		}

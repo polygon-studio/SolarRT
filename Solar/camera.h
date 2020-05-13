@@ -1,5 +1,5 @@
 #pragma once
-#include "rtweekend.h"
+#include "common.h"
 
 class camera {
 public:
